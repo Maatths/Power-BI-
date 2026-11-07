@@ -1,0 +1,78 @@
+{
+    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+    "name":  "barServico",
+    "position":  {
+                     "x":  855,
+                     "y":  216,
+                     "z":  9000,
+                     "height":  250,
+                     "width":  405,
+                     "tabOrder":  9000
+                 },
+    "visual":  {
+                   "visualType":  "clusteredBarChart",
+                   "query":  {
+                                 "queryState":  {
+                                                    "Category":  {
+                                                                     "projections":  [
+                                                                                         {
+                                                                                             "field":  {
+                                                                                                           "Column":  {
+                                                                                                                          "Expression":  {
+                                                                                                                                             "SourceRef":  {
+                                                                                                                                                               "Entity":  "dServico"
+                                                                                                                                                           }
+                                                                                                                                         },
+                                                                                                                          "Property":  "ServicoNome"
+                                                                                                                      }
+                                                                                                       },
+                                                                                             "queryRef":  "dServico.ServicoNome",
+                                                                                             "nativeQueryRef":  "ServicoNome"
+                                                                                         }
+                                                                                     ]
+                                                                 },
+                                                    "Y":  {
+                                                              "projections":  [
+                                                                                  {
+                                                                                      "field":  {
+                                                                                                    "Measure":  {
+                                                                                                                    "Expression":  {
+                                                                                                                                       "SourceRef":  {
+                                                                                                                                                         "Entity":  "_Medidas"
+                                                                                                                                                     }
+                                                                                                                                   },
+                                                                                                                    "Property":  "Reclamações"
+                                                                                                                }
+                                                                                                },
+                                                                                      "queryRef":  "_Medidas.Reclamações",
+                                                                                      "nativeQueryRef":  "Reclamações"
+                                                                                  }
+                                                                              ]
+                                                          }
+                                                }
+                             },
+                   "drillFilterOtherVisuals":  true,
+                   "visualContainerObjects":  {
+                                                  "title":  [
+                                                                {
+                                                                    "properties":  {
+                                                                                       "show":  {
+                                                                                                    "expr":  {
+                                                                                                                 "Literal":  {
+                                                                                                                                 "Value":  "true"
+                                                                                                                             }
+                                                                                                             }
+                                                                                                },
+                                                                                       "text":  {
+                                                                                                    "expr":  {
+                                                                                                                 "Literal":  {
+                                                                                                                                 "Value":  "\u0027Reclamações por serviço\u0027"
+                                                                                                                             }
+                                                                                                             }
+                                                                                                }
+                                                                                   }
+                                                                }
+                                                            ]
+                                              }
+               }
+}

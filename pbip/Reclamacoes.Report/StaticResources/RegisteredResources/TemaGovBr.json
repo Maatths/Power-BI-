@@ -1,0 +1,55 @@
+{
+  "name": "Padrão Digital de Governo (gov.br)",
+  "dataColors": ["#1351B4", "#071D41", "#5992ED", "#168821", "#FFCD07", "#E52207", "#81AEFC", "#636363"],
+  "background": "#FFFFFF",
+  "foreground": "#333333",
+  "tableAccent": "#1351B4",
+  "good": "#168821",
+  "neutral": "#FFCD07",
+  "bad": "#E52207",
+  "maximum": "#071D41",
+  "center": "#5992ED",
+  "minimum": "#D4E5FF",
+  "textClasses": {
+    "callout": { "fontSize": 28, "fontFace": "Segoe UI Semibold", "color": "#071D41" },
+    "title": { "fontSize": 13, "fontFace": "Segoe UI Semibold", "color": "#071D41" },
+    "header": { "fontSize": 12, "fontFace": "Segoe UI Semibold", "color": "#333333" },
+    "label": { "fontSize": 10, "fontFace": "Segoe UI", "color": "#555555" }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [{ "show": true, "color": { "solid": { "color": "#FFFFFF" } }, "transparency": 0 }],
+        "border": [{ "show": false }],
+        "dropShadow": [{ "show": true, "preset": "BottomRight", "color": { "solid": { "color": "#333333" } }, "transparency": 85 }],
+        "visualHeader": [{ "show": true }],
+        "title": [{ "show": true, "fontColor": { "solid": { "color": "#071D41" } }, "fontSize": 13, "bold": true }],
+        "categoryAxis": [{ "gridlineShow": false, "labelColor": { "solid": { "color": "#555555" } } }],
+        "valueAxis": [{ "gridlineColor": { "solid": { "color": "#E6E6E6" } }, "labelColor": { "solid": { "color": "#555555" } } }]
+      }
+    },
+    "page": {
+      "*": {
+        "background": [{ "color": { "solid": { "color": "#F8F8F8" } }, "transparency": 0 }],
+        "outspace": [{ "color": { "solid": { "color": "#F8F8F8" } } }]
+      }
+    },
+    "card": {
+      "*": {
+        "labels": [{ "color": { "solid": { "color": "#071D41" } } }],
+        "categoryLabels": [{ "color": { "solid": { "color": "#555555" } } }]
+      }
+    },
+    "slicer": {
+      "*": {
+        "items": [{ "fontColor": { "solid": { "color": "#333333" } } }],
+        "header": [{ "fontColor": { "solid": { "color": "#071D41" } } }]
+      }
+    },
+    "lineChart": {
+      "*": {
+        "lineStyles": [{ "strokeWidth": 2 }]
+      }
+    }
+  }
+}

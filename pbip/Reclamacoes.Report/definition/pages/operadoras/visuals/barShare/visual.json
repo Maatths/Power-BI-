@@ -1,0 +1,78 @@
+{
+    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+    "name":  "barShare",
+    "position":  {
+                     "x":  20,
+                     "y":  92,
+                     "z":  14000,
+                     "height":  300,
+                     "width":  610,
+                     "tabOrder":  14000
+                 },
+    "visual":  {
+                   "visualType":  "clusteredBarChart",
+                   "query":  {
+                                 "queryState":  {
+                                                    "Category":  {
+                                                                     "projections":  [
+                                                                                         {
+                                                                                             "field":  {
+                                                                                                           "Column":  {
+                                                                                                                          "Expression":  {
+                                                                                                                                             "SourceRef":  {
+                                                                                                                                                               "Entity":  "dOperadora"
+                                                                                                                                                           }
+                                                                                                                                         },
+                                                                                                                          "Property":  "Marca"
+                                                                                                                      }
+                                                                                                       },
+                                                                                             "queryRef":  "dOperadora.Marca",
+                                                                                             "nativeQueryRef":  "Marca"
+                                                                                         }
+                                                                                     ]
+                                                                 },
+                                                    "Y":  {
+                                                              "projections":  [
+                                                                                  {
+                                                                                      "field":  {
+                                                                                                    "Measure":  {
+                                                                                                                    "Expression":  {
+                                                                                                                                       "SourceRef":  {
+                                                                                                                                                         "Entity":  "_Medidas"
+                                                                                                                                                     }
+                                                                                                                                   },
+                                                                                                                    "Property":  "Participação nas Reclamações"
+                                                                                                                }
+                                                                                                },
+                                                                                      "queryRef":  "_Medidas.Participação nas Reclamações",
+                                                                                      "nativeQueryRef":  "Participação nas Reclamações"
+                                                                                  }
+                                                                              ]
+                                                          }
+                                                }
+                             },
+                   "drillFilterOtherVisuals":  true,
+                   "visualContainerObjects":  {
+                                                  "title":  [
+                                                                {
+                                                                    "properties":  {
+                                                                                       "show":  {
+                                                                                                    "expr":  {
+                                                                                                                 "Literal":  {
+                                                                                                                                 "Value":  "true"
+                                                                                                                             }
+                                                                                                             }
+                                                                                                },
+                                                                                       "text":  {
+                                                                                                    "expr":  {
+                                                                                                                 "Literal":  {
+                                                                                                                                 "Value":  "\u0027Participação nas reclamações\u0027"
+                                                                                                                             }
+                                                                                                             }
+                                                                                                }
+                                                                                   }
+                                                                }
+                                                            ]
+                                              }
+               }
+}

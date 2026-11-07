@@ -1,0 +1,38 @@
+{
+    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+    "name":  "slicerOp3",
+    "position":  {
+                     "x":  235,
+                     "y":  16,
+                     "z":  19000,
+                     "height":  64,
+                     "width":  200,
+                     "tabOrder":  19000
+                 },
+    "visual":  {
+                   "visualType":  "slicer",
+                   "query":  {
+                                 "queryState":  {
+                                                    "Values":  {
+                                                                   "projections":  [
+                                                                                       {
+                                                                                           "field":  {
+                                                                                                         "Column":  {
+                                                                                                                        "Expression":  {
+                                                                                                                                           "SourceRef":  {
+                                                                                                                                                             "Entity":  "dOperadora"
+                                                                                                                                                         }
+                                                                                                                                       },
+                                                                                                                        "Property":  "Marca"
+                                                                                                                    }
+                                                                                                     },
+                                                                                           "queryRef":  "dOperadora.Marca",
+                                                                                           "nativeQueryRef":  "Marca"
+                                                                                       }
+                                                                                   ]
+                                                               }
+                                                }
+                             },
+                   "drillFilterOtherVisuals":  true
+               }
+}

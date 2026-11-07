@@ -1,0 +1,11 @@
+table dOperadora
+
+	column Marca
+		dataType: string
+		isKey
+		summarizeBy: none
+		sourceColumn: [Marca]
+
+	partition dOperadora = calculated
+		mode: import
+		source = SELECTCOLUMNS ( DISTINCT ( fReclamacoes[Marca] ), "Marca", fReclamacoes[Marca] )

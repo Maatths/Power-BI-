@@ -1,0 +1,96 @@
+{
+    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+    "name":  "colCondicao",
+    "position":  {
+                     "x":  650,
+                     "y":  92,
+                     "z":  25000,
+                     "height":  612,
+                     "width":  610,
+                     "tabOrder":  25000
+                 },
+    "visual":  {
+                   "visualType":  "hundredPercentStackedColumnChart",
+                   "query":  {
+                                 "queryState":  {
+                                                    "Y":  {
+                                                              "projections":  [
+                                                                                  {
+                                                                                      "field":  {
+                                                                                                    "Measure":  {
+                                                                                                                    "Expression":  {
+                                                                                                                                       "SourceRef":  {
+                                                                                                                                                         "Entity":  "_Medidas"
+                                                                                                                                                     }
+                                                                                                                                   },
+                                                                                                                    "Property":  "Reclamações"
+                                                                                                                }
+                                                                                                },
+                                                                                      "queryRef":  "_Medidas.Reclamações",
+                                                                                      "nativeQueryRef":  "Reclamações"
+                                                                                  }
+                                                                              ]
+                                                          },
+                                                    "Category":  {
+                                                                     "projections":  [
+                                                                                         {
+                                                                                             "field":  {
+                                                                                                           "Column":  {
+                                                                                                                          "Expression":  {
+                                                                                                                                             "SourceRef":  {
+                                                                                                                                                               "Entity":  "dCalendario"
+                                                                                                                                                           }
+                                                                                                                                         },
+                                                                                                                          "Property":  "Ano"
+                                                                                                                      }
+                                                                                                       },
+                                                                                             "queryRef":  "dCalendario.Ano",
+                                                                                             "nativeQueryRef":  "Ano"
+                                                                                         }
+                                                                                     ]
+                                                                 },
+                                                    "Series":  {
+                                                                   "projections":  [
+                                                                                       {
+                                                                                           "field":  {
+                                                                                                         "Column":  {
+                                                                                                                        "Expression":  {
+                                                                                                                                           "SourceRef":  {
+                                                                                                                                                             "Entity":  "fReclamacoes"
+                                                                                                                                                         }
+                                                                                                                                       },
+                                                                                                                        "Property":  "Condicao"
+                                                                                                                    }
+                                                                                                     },
+                                                                                           "queryRef":  "fReclamacoes.Condicao",
+                                                                                           "nativeQueryRef":  "Condicao"
+                                                                                       }
+                                                                                   ]
+                                                               }
+                                                }
+                             },
+                   "drillFilterOtherVisuals":  true,
+                   "visualContainerObjects":  {
+                                                  "title":  [
+                                                                {
+                                                                    "properties":  {
+                                                                                       "show":  {
+                                                                                                    "expr":  {
+                                                                                                                 "Literal":  {
+                                                                                                                                 "Value":  "true"
+                                                                                                                             }
+                                                                                                             }
+                                                                                                },
+                                                                                       "text":  {
+                                                                                                    "expr":  {
+                                                                                                                 "Literal":  {
+                                                                                                                                 "Value":  "\u0027Nova × reaberta por ano\u0027"
+                                                                                                                             }
+                                                                                                             }
+                                                                                                }
+                                                                                   }
+                                                                }
+                                                            ]
+                                              }
+               }
+}

@@ -1,0 +1,96 @@
+{
+    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+    "name":  "matriz",
+    "position":  {
+                     "x":  20,
+                     "y":  406,
+                     "z":  16000,
+                     "height":  298,
+                     "width":  610,
+                     "tabOrder":  16000
+                 },
+    "visual":  {
+                   "visualType":  "pivotTable",
+                   "query":  {
+                                 "queryState":  {
+                                                    "Values":  {
+                                                                   "projections":  [
+                                                                                       {
+                                                                                           "field":  {
+                                                                                                         "Measure":  {
+                                                                                                                         "Expression":  {
+                                                                                                                                            "SourceRef":  {
+                                                                                                                                                              "Entity":  "_Medidas"
+                                                                                                                                                          }
+                                                                                                                                        },
+                                                                                                                         "Property":  "Reclamações"
+                                                                                                                     }
+                                                                                                     },
+                                                                                           "queryRef":  "_Medidas.Reclamações",
+                                                                                           "nativeQueryRef":  "Reclamações"
+                                                                                       }
+                                                                                   ]
+                                                               },
+                                                    "Columns":  {
+                                                                    "projections":  [
+                                                                                        {
+                                                                                            "field":  {
+                                                                                                          "Column":  {
+                                                                                                                         "Expression":  {
+                                                                                                                                            "SourceRef":  {
+                                                                                                                                                              "Entity":  "dServico"
+                                                                                                                                                          }
+                                                                                                                                        },
+                                                                                                                         "Property":  "ServicoNome"
+                                                                                                                     }
+                                                                                                      },
+                                                                                            "queryRef":  "dServico.ServicoNome",
+                                                                                            "nativeQueryRef":  "ServicoNome"
+                                                                                        }
+                                                                                    ]
+                                                                },
+                                                    "Rows":  {
+                                                                 "projections":  [
+                                                                                     {
+                                                                                         "field":  {
+                                                                                                       "Column":  {
+                                                                                                                      "Expression":  {
+                                                                                                                                         "SourceRef":  {
+                                                                                                                                                           "Entity":  "dOperadora"
+                                                                                                                                                       }
+                                                                                                                                     },
+                                                                                                                      "Property":  "Marca"
+                                                                                                                  }
+                                                                                                   },
+                                                                                         "queryRef":  "dOperadora.Marca",
+                                                                                         "nativeQueryRef":  "Marca"
+                                                                                     }
+                                                                                 ]
+                                                             }
+                                                }
+                             },
+                   "drillFilterOtherVisuals":  true,
+                   "visualContainerObjects":  {
+                                                  "title":  [
+                                                                {
+                                                                    "properties":  {
+                                                                                       "show":  {
+                                                                                                    "expr":  {
+                                                                                                                 "Literal":  {
+                                                                                                                                 "Value":  "true"
+                                                                                                                             }
+                                                                                                             }
+                                                                                                },
+                                                                                       "text":  {
+                                                                                                    "expr":  {
+                                                                                                                 "Literal":  {
+                                                                                                                                 "Value":  "\u0027Operadora × serviço\u0027"
+                                                                                                                             }
+                                                                                                             }
+                                                                                                }
+                                                                                   }
+                                                                }
+                                                            ]
+                                              }
+               }
+}

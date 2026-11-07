@@ -1,0 +1,4 @@
+# Dados brutos (baixar da Anatel — ver README)
+*.csv
+*.zip
+dados/

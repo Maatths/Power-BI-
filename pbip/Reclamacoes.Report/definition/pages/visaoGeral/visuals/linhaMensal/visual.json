@@ -1,0 +1,92 @@
+{
+    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+    "name":  "linhaMensal",
+    "position":  {
+                     "x":  20,
+                     "y":  216,
+                     "z":  8000,
+                     "height":  250,
+                     "width":  820,
+                     "tabOrder":  8000
+                 },
+    "visual":  {
+                   "visualType":  "lineChart",
+                   "query":  {
+                                 "queryState":  {
+                                                    "Category":  {
+                                                                     "projections":  [
+                                                                                         {
+                                                                                             "field":  {
+                                                                                                           "Column":  {
+                                                                                                                          "Expression":  {
+                                                                                                                                             "SourceRef":  {
+                                                                                                                                                               "Entity":  "dCalendario"
+                                                                                                                                                           }
+                                                                                                                                         },
+                                                                                                                          "Property":  "AnoMes"
+                                                                                                                      }
+                                                                                                       },
+                                                                                             "queryRef":  "dCalendario.AnoMes",
+                                                                                             "nativeQueryRef":  "AnoMes"
+                                                                                         }
+                                                                                     ]
+                                                                 },
+                                                    "Y":  {
+                                                              "projections":  [
+                                                                                  {
+                                                                                      "field":  {
+                                                                                                    "Measure":  {
+                                                                                                                    "Expression":  {
+                                                                                                                                       "SourceRef":  {
+                                                                                                                                                         "Entity":  "_Medidas"
+                                                                                                                                                     }
+                                                                                                                                   },
+                                                                                                                    "Property":  "Reclamações"
+                                                                                                                }
+                                                                                                },
+                                                                                      "queryRef":  "_Medidas.Reclamações",
+                                                                                      "nativeQueryRef":  "Reclamações"
+                                                                                  },
+                                                                                  {
+                                                                                      "field":  {
+                                                                                                    "Measure":  {
+                                                                                                                    "Expression":  {
+                                                                                                                                       "SourceRef":  {
+                                                                                                                                                         "Entity":  "_Medidas"
+                                                                                                                                                     }
+                                                                                                                                   },
+                                                                                                                    "Property":  "Reclamações Média Móvel 3M"
+                                                                                                                }
+                                                                                                },
+                                                                                      "queryRef":  "_Medidas.Reclamações Média Móvel 3M",
+                                                                                      "nativeQueryRef":  "Reclamações Média Móvel 3M"
+                                                                                  }
+                                                                              ]
+                                                          }
+                                                }
+                             },
+                   "drillFilterOtherVisuals":  true,
+                   "visualContainerObjects":  {
+                                                  "title":  [
+                                                                {
+                                                                    "properties":  {
+                                                                                       "show":  {
+                                                                                                    "expr":  {
+                                                                                                                 "Literal":  {
+                                                                                                                                 "Value":  "true"
+                                                                                                                             }
+                                                                                                             }
+                                                                                                },
+                                                                                       "text":  {
+                                                                                                    "expr":  {
+                                                                                                                 "Literal":  {
+                                                                                                                                 "Value":  "\u0027Reclamações por mês\u0027"
+                                                                                                                             }
+                                                                                                             }
+                                                                                                }
+                                                                                   }
+                                                                }
+                                                            ]
+                                              }
+               }
+}

@@ -1,0 +1,55 @@
+/// Pasta onde está o reclamacoes_contexto.csv (com barra no final)
+expression pPastaDados = "C:\Dados\Anatel\" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	queryGroup: Parametros
+
+/// Primeiro ano carregado (controla o volume de dados)
+expression pAnoInicial = 2021 meta [IsParameterQuery=true, Type="Number", IsParameterQueryRequired=true]
+	queryGroup: Parametros
+
+/// Leitura e limpeza do CSV da Anatel. Só a fReclamacoes usa esta consulta:
+/// as dimensões são tabelas calculadas em DAX, então o CSV é lido uma única vez.
+expression stg_Reclamacoes =
+		let
+			Fonte = Csv.Document(
+				File.Contents(pPastaDados & "reclamacoes_contexto.csv"),
+				[Delimiter = ";", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]
+			),
+			Cabecalho = Table.PromoteHeaders(Fonte, [PromoteAllScalars = true]),
+			Renomeado = Table.RenameColumns(Cabecalho, {
+				{"SOLICITAÇÕES", "Solicitacoes"},
+				{"Mês", "Mes"},
+				{"Condição", "Condicao"},
+				{"Serviço", "Servico"}
+			}),
+			// Descarta cedo o que não é usado (economiza memória na carga)
+			Colunas = Table.SelectColumns(Renomeado, {
+				"Solicitacoes", "Ano", "Mes", "UF", "Cidade", "CanalEntrada", "Condicao",
+				"TipoAtendimento", "Servico", "Marca", "Assunto", "Problema"
+			}),
+			Tipos = Table.TransformColumnTypes(Colunas, {
+				{"Solicitacoes", Int64.Type}, {"Ano", Int64.Type}, {"Mes", Int64.Type},
+				{"UF", type text}, {"Cidade", type text},
+				{"CanalEntrada", type text}, {"Condicao", type text}, {"TipoAtendimento", type text},
+				{"Servico", type text}, {"Marca", type text}, {"Assunto", type text}, {"Problema", type text}
+			}),
+			Filtrado = Table.SelectRows(Tipos, each [Ano] >= pAnoInicial),
+			Frase = (t as nullable text) as nullable text =>
+				if t = null then null
+				else Text.Upper(Text.Start(Text.Trim(t), 1)) & Text.Lower(Text.Middle(Text.Trim(t), 1)),
+			Limpo = Table.TransformColumns(Filtrado, {
+				{"Problema", Frase, type text},
+				{"Assunto", each Text.Trim(_), type text},
+				{"Marca", each Text.Upper(Text.Trim(_)), type text}
+			}),
+			ComData = Table.AddColumn(Limpo, "Data", each #date([Ano], [Mes], 1), type date),
+			// Chaves compostas: as dimensões em DAX desmontam estes textos
+			ComChaveLocal = Table.AddColumn(ComData, "ChaveLocal", each
+				(if [UF] = null or [UF] = "" then "NI" else [UF]) & "|" & (if [Cidade] = null then "Não informado" else [Cidade]), type text),
+			ComChaveProblema = Table.AddColumn(ComChaveLocal, "ChaveProblema", each [Assunto] & " | " & [Problema], type text),
+			Final = Table.SelectColumns(ComChaveProblema, {
+				"Data", "ChaveLocal", "Marca", "Servico", "ChaveProblema",
+				"CanalEntrada", "Condicao", "TipoAtendimento", "Solicitacoes"
+			})
+		in
+			Final
+	queryGroup: Staging

@@ -1,0 +1,17 @@
+model Model
+	culture: pt-BR
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: pt-BR
+
+queryGroup Parametros
+
+queryGroup Staging
+
+ref table _Medidas
+ref table fReclamacoes
+ref table dCalendario
+ref table dLocal
+ref table dOperadora
+ref table dServico
+ref table dProblema

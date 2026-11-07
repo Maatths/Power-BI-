@@ -1,0 +1,35 @@
+table dProblema
+
+	column ChaveProblema
+		dataType: string
+		isKey
+		isHidden
+		summarizeBy: none
+		sourceColumn: [ChaveProblema]
+
+	column Assunto
+		dataType: string
+		summarizeBy: none
+		sourceColumn: [Assunto]
+
+	column Problema
+		dataType: string
+		summarizeBy: none
+		sourceColumn: [Problema]
+
+	hierarchy 'Assunto > Problema'
+
+		level Assunto
+			column: Assunto
+
+		level Problema
+			column: Problema
+
+	partition dProblema = calculated
+		mode: import
+		source =
+				ADDCOLUMNS (
+					SELECTCOLUMNS ( DISTINCT ( fReclamacoes[ChaveProblema] ), "ChaveProblema", fReclamacoes[ChaveProblema] ),
+					"Assunto", LEFT ( [ChaveProblema], SEARCH ( " | ", [ChaveProblema], 1, 1 ) - 1 ),
+					"Problema", MID ( [ChaveProblema], SEARCH ( " | ", [ChaveProblema], 1, 1 ) + 3, 500 )
+				)

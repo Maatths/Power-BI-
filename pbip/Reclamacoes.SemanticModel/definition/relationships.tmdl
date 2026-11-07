@@ -1,0 +1,19 @@
+relationship fReclamacoes_dCalendario
+	fromColumn: fReclamacoes.Data
+	toColumn: dCalendario.Data
+
+relationship fReclamacoes_dLocal
+	fromColumn: fReclamacoes.ChaveLocal
+	toColumn: dLocal.ChaveLocal
+
+relationship fReclamacoes_dOperadora
+	fromColumn: fReclamacoes.Marca
+	toColumn: dOperadora.Marca
+
+relationship fReclamacoes_dServico
+	fromColumn: fReclamacoes.Servico
+	toColumn: dServico.Servico
+
+relationship fReclamacoes_dProblema
+	fromColumn: fReclamacoes.ChaveProblema
+	toColumn: dProblema.ChaveProblema

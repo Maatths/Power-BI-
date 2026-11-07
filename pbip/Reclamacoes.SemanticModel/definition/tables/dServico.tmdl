@@ -1,0 +1,42 @@
+table dServico
+
+	column Servico
+		dataType: string
+		isKey
+		isHidden
+		summarizeBy: none
+		sourceColumn: [Servico]
+
+	column ServicoNome
+		dataType: string
+		summarizeBy: none
+		sourceColumn: [ServicoNome]
+
+	column GrupoServico
+		dataType: string
+		summarizeBy: none
+		sourceColumn: [GrupoServico]
+
+	partition dServico = calculated
+		mode: import
+		source =
+				ADDCOLUMNS (
+					SELECTCOLUMNS ( DISTINCT ( fReclamacoes[Servico] ), "Servico", fReclamacoes[Servico] ),
+					"ServicoNome",
+						SWITCH (
+							[Servico],
+							"SMP_Pós", "Telefonia Móvel Pós-paga",
+							"SMP_Pré", "Telefonia Móvel Pré-paga",
+							"STFC", "Telefonia Fixa",
+							"SCM", "Banda Larga Fixa",
+							"SeAC", "TV por Assinatura",
+							IF ( ISBLANK ( [Servico] ), "Não informado", [Servico] )
+						),
+					"GrupoServico",
+						SWITCH (
+							TRUE (),
+							LEFT ( [Servico], 3 ) = "SMP", "Móvel",
+							[Servico] IN { "STFC", "SCM", "SeAC" }, "Fixo",
+							"Outros"
+						)
+				)

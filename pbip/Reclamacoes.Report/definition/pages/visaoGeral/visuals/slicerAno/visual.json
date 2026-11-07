@@ -1,0 +1,38 @@
+{
+    "$schema":  "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+    "name":  "slicerAno",
+    "position":  {
+                     "x":  20,
+                     "y":  16,
+                     "z":  1000,
+                     "height":  64,
+                     "width":  200,
+                     "tabOrder":  1000
+                 },
+    "visual":  {
+                   "visualType":  "slicer",
+                   "query":  {
+                                 "queryState":  {
+                                                    "Values":  {
+                                                                   "projections":  [
+                                                                                       {
+                                                                                           "field":  {
+                                                                                                         "Column":  {
+                                                                                                                        "Expression":  {
+                                                                                                                                           "SourceRef":  {
+                                                                                                                                                             "Entity":  "dCalendario"
+                                                                                                                                                         }
+                                                                                                                                       },
+                                                                                                                        "Property":  "Ano"
+                                                                                                                    }
+                                                                                                     },
+                                                                                           "queryRef":  "dCalendario.Ano",
+                                                                                           "nativeQueryRef":  "Ano"
+                                                                                       }
+                                                                                   ]
+                                                               }
+                                                }
+                             },
+                   "drillFilterOtherVisuals":  true
+               }
+}

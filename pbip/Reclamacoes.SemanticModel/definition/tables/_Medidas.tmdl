@@ -1,0 +1,102 @@
+table _Medidas
+
+	measure 'Solicitações' = SUM ( fReclamacoes[Solicitacoes] )
+		formatString: #,0
+
+	measure 'Reclamações' = CALCULATE ( [Solicitações], fReclamacoes[TipoAtendimento] = "Reclamação" )
+		formatString: #,0
+
+	measure '% Reclamações no Total' = DIVIDE ( [Reclamações], [Solicitações] )
+		formatString: 0.0%
+
+	measure 'Média Mensal de Reclamações' = AVERAGEX ( VALUES ( dCalendario[AnoMes] ), [Reclamações] )
+		formatString: #,0
+
+	measure 'Reclamações Ano Anterior' = CALCULATE ( [Reclamações], SAMEPERIODLASTYEAR ( dCalendario[Data] ) )
+		formatString: #,0
+
+	measure 'Var % Ano a Ano' =
+			VAR _Atual = [Reclamações]
+			VAR _Anterior = [Reclamações Ano Anterior]
+			RETURN
+				IF ( NOT ISBLANK ( _Anterior ), DIVIDE ( _Atual - _Anterior, _Anterior ) )
+		formatString: +0.0%;-0.0%;0.0%
+
+	measure 'Reclamações Acumulado no Ano' = TOTALYTD ( [Reclamações], dCalendario[Data] )
+		formatString: #,0
+
+	measure 'Reclamações Média Móvel 3M' =
+			VAR _UltimaData = MAX ( dCalendario[Data] )
+			RETURN
+				CALCULATE (
+					AVERAGEX ( VALUES ( dCalendario[AnoMes] ), [Reclamações] ),
+					DATESINPERIOD ( dCalendario[Data], _UltimaData, -3, MONTH )
+				)
+		formatString: #,0
+
+	measure 'Reclamações Reabertas' = CALCULATE ( [Reclamações], fReclamacoes[Condicao] = "Reaberta" )
+		formatString: #,0
+
+	measure 'Taxa de Reabertura' = DIVIDE ( [Reclamações Reabertas], [Reclamações] )
+		formatString: 0.0%
+
+	measure 'Taxa de Reabertura Mercado' = CALCULATE ( [Taxa de Reabertura], REMOVEFILTERS ( dOperadora ) )
+		formatString: 0.0%
+
+	measure 'Reabertura vs Mercado (p.p.)' = ( [Taxa de Reabertura] - [Taxa de Reabertura Mercado] ) * 100
+		formatString: +0.0;-0.0;0.0
+
+	measure 'Participação nas Reclamações' = DIVIDE ( [Reclamações], CALCULATE ( [Reclamações], REMOVEFILTERS ( dOperadora ) ) )
+		formatString: 0.0%
+
+	measure 'Ranking Operadora' =
+			IF (
+				HASONEVALUE ( dOperadora[Marca] ),
+				RANKX ( ALLSELECTED ( dOperadora[Marca] ), [Reclamações], , DESC, DENSE )
+			)
+		formatString: 0
+
+	measure 'Principal Problema' =
+			MAXX (
+				TOPN ( 1, VALUES ( dProblema[Problema] ), [Reclamações], DESC ),
+				dProblema[Problema]
+			)
+
+	measure 'Principal Assunto' =
+			MAXX (
+				TOPN ( 1, VALUES ( dProblema[Assunto] ), [Reclamações], DESC ),
+				dProblema[Assunto]
+			)
+
+	measure '% do Assunto no Total' = DIVIDE ( [Reclamações], CALCULATE ( [Reclamações], REMOVEFILTERS ( dProblema ) ) )
+		formatString: 0.0%
+
+	measure 'Título Variação' =
+			VAR _Var = [Var % Ano a Ano]
+			RETURN
+				IF (
+					ISBLANK ( _Var ),
+					"Sem base de comparação com o ano anterior",
+					"Reclamações " & IF ( _Var < 0, "caíram ", "subiram " )
+						& FORMAT ( ABS ( _Var ), "0.0%" ) & " em relação ao ano anterior"
+				)
+
+	measure 'Título Principal Problema' =
+			"Principal motivo de reclamação: " & [Principal Problema]
+				& " (" & FORMAT ( CALCULATE ( [% do Assunto no Total], TOPN ( 1, VALUES ( dProblema[Problema] ), [Reclamações], DESC ) ), "0.0%" ) & ")"
+
+	measure 'Período Selecionado' =
+			FORMAT ( MIN ( fReclamacoes[Data] ), "mmm/yyyy" ) & " a " & FORMAT ( MAX ( fReclamacoes[Data] ), "mmm/yyyy" )
+
+	measure 'Cor Variação' = IF ( [Var % Ano a Ano] < 0, "#2E9E6B", "#D64545" )
+
+	column Coluna
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: [Coluna]
+
+	partition _Medidas = calculated
+		mode: import
+		source = ROW ( "Coluna", 0 )

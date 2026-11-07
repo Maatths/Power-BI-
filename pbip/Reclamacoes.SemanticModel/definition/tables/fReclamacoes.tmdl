@@ -1,0 +1,57 @@
+table fReclamacoes
+
+	column Data
+		dataType: dateTime
+		formatString: Short Date
+		summarizeBy: none
+		sourceColumn: Data
+
+	column ChaveLocal
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: ChaveLocal
+
+	column Marca
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: Marca
+
+	column Servico
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: Servico
+
+	column ChaveProblema
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: ChaveProblema
+
+	column CanalEntrada
+		dataType: string
+		summarizeBy: none
+		sourceColumn: CanalEntrada
+
+	column Condicao
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Condicao
+
+	column TipoAtendimento
+		dataType: string
+		summarizeBy: none
+		sourceColumn: TipoAtendimento
+
+	column Solicitacoes
+		dataType: int64
+		isHidden
+		formatString: #,0
+		summarizeBy: sum
+		sourceColumn: Solicitacoes
+
+	partition fReclamacoes = m
+		mode: import
+		source = stg_Reclamacoes

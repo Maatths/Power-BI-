@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reclamações em Telecom</title>
+<meta name="description" content="Dashboard interativo das reclamações de consumidores registradas na Anatel, com dados abertos de 2021 em diante.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ====== Tokens — Padrão Digital de Governo (Design System gov.br), usado no portal da Anatel ====== */
+  :root {
+    color-scheme: light;
+    --page: #f8f8f8;          /* gray-2 */
+    --surface: #ffffff;
+    --text: #333333;          /* gray-80 */
+    --text-2: #555555;        /* gray-70 */
+    --muted: #757575;         /* gray-60 */
+    --heading: #071d41;       /* blue-warm-vivid-90 */
+    --link: #1351b4;          /* blue-warm-vivid-70 (interativo) */
+    --grid: #e6e6e6;
+    --axis: #cccccc;
+    --border: #e6e6e6;
+    --shadow: 0 1px 6px rgba(51, 51, 51, .16);
+    --series-1: #1351b4;      /* blue-warm-vivid-70 */
+    --dim: #d6d6d6;           /* barras fora de foco */
+    --div-neg: #1351b4;       /* abaixo do mercado (melhor) */
+    --div-pos: #e52207;       /* red-vivid-50 (atenção) */
+    --div-mid: #ededed;
+    --good: #168821;          /* green-cool-vivid-50 (sucesso) */
+    --bad: #e52207;
+    --seq: #d4e5ff, #adcdff, #81aefc, #5992ed, #2670e8, #1351b4, #071d41;
+    --band: rgba(19, 81, 180, .07);
+    --header-bg: #ffffff;
+    --chip-bg: #dbe8fb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --page: #071d41; --surface: #0c326f; --text: #ffffff; --text-2: #d4e5ff; --muted: #adcdff;
+      --heading: #ffffff; --link: #adcdff; --grid: #1a4a8f; --axis: #2e5fa8; --border: #1a4a8f;
+      --shadow: 0 1px 6px rgba(0, 0, 0, .35);
+      --series-1: #81aefc; --dim: #2e5fa8; --div-neg: #81aefc; --div-pos: #ff8d7b; --div-mid: #1a4a8f;
+      --good: #70e17b; --bad: #ff8d7b; --band: rgba(173, 205, 255, .12);
+      --header-bg: #071d41; --chip-bg: #1a4a8f;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #071d41; --surface: #0c326f; --text: #ffffff; --text-2: #d4e5ff; --muted: #adcdff;
+    --heading: #ffffff; --link: #adcdff; --grid: #1a4a8f; --axis: #2e5fa8; --border: #1a4a8f;
+    --shadow: 0 1px 6px rgba(0, 0, 0, .35);
+    --series-1: #81aefc; --dim: #2e5fa8; --div-neg: #81aefc; --div-pos: #ff8d7b; --div-mid: #1a4a8f;
+    --good: #70e17b; --bad: #ff8d7b; --band: rgba(173, 205, 255, .12);
+    --header-bg: #071d41; --chip-bg: #1a4a8f;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  /* Rawline é a fonte do gov.br; Raleway é a alternativa indicada pelo Design System */
+  body { font-family: Rawline, Raleway, system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--page); color: var(--text); line-height: 1.5; font-variant-numeric: lining-nums; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+  button, select { font: inherit; color: inherit; }
+
+  header { background: var(--header-bg); box-shadow: var(--shadow); padding: 14px 0 22px; position: relative; z-index: 21; }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; font-size: 14px; }
+  .top a { color: var(--link); text-decoration: none; font-weight: 600; }
+  .top a:hover { text-decoration: underline; }
+  .theme-btn { background: transparent; border: 1px solid var(--link); border-radius: 100em; padding: 6px 16px; cursor: pointer; color: var(--link); font-weight: 600; font-size: 14px; }
+  .theme-btn:hover { background: var(--band); }
+  .tag-proj { display: inline-block; font-size: 12px; font-weight: 600; color: var(--link); background: var(--chip-bg); border-radius: 100em; padding: 2px 12px; margin-bottom: 8px; }
+  h1 { font-size: clamp(24px, 3.4vw, 34px); font-weight: 700; color: var(--heading); letter-spacing: -.01em; }
+  .sub { color: var(--text-2); font-size: 15px; margin-top: 4px; }
+
+  /* Filtros: uma linha acima de tudo */
+  .filters { position: sticky; top: 0; z-index: 20; background: var(--page); padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .filters .wrap { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+  .f { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1 1 150px; max-width: 240px; }
+  .f label { font-size: 14px; color: var(--text); font-weight: 600; }
+  .f select { background: var(--surface); border: 1px solid #888888; border-radius: 6px; height: 40px; padding: 0 12px; cursor: pointer; }
+  .f select:focus { outline: 4px solid #c2850c; outline-offset: 0; }   /* foco padrão gov.br */
+  .clear { background: transparent; border: 1px solid var(--link); border-radius: 100em; height: 40px; padding: 0 20px; cursor: pointer; color: var(--link); font-weight: 600; }
+  .clear:hover { background: var(--band); }
+
+  main { padding: 20px 0 40px; }
+  .headline { font-size: clamp(17px, 2vw, 21px); font-weight: 600; margin-bottom: 18px; max-width: 900px; }
+  .headline .neg { color: var(--good); }
+  .headline .pos { color: var(--bad); }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 14px; }
+  .tile, .card { background: var(--surface); border: 0; border-radius: 8px; box-shadow: var(--shadow); }
+  .tile { padding: 16px 18px; min-width: 0; border-top: 4px solid var(--series-1); }
+  .tile .lbl { font-size: 14px; font-weight: 600; color: var(--text-2); }
+  .tile .val { font-size: 30px; font-weight: 700; margin-top: 2px; color: var(--heading); }
+  .tile .val.small { font-size: 16px; font-weight: 600; line-height: 1.35; margin-top: 6px; }
+  .tile .note { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .tile .val.delta-neg { color: var(--good); }
+  .tile .val.delta-pos { color: var(--bad); }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .card { padding: 16px 18px 18px; min-width: 0; }
+  .card.full { grid-column: 1 / -1; }
+  .card-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; margin-bottom: 12px; }
+  .card h2 { font-size: 16px; font-weight: 700; color: var(--heading); }
+  .card .desc { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .tbl-btn { background: none; border: 1px solid var(--link); border-radius: 100em; padding: 3px 14px; font-size: 13px; font-weight: 600; color: var(--link); cursor: pointer; white-space: nowrap; }
+  .tbl-btn:hover { background: var(--band); }
+
+  /* Barras horizontais em HTML */
+  .bars { display: grid; gap: 8px; }
+  .bar-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 10px; cursor: default; border-radius: 6px; padding: 2px 4px; margin: -2px -4px; }
+  .bar-row.click { cursor: pointer; }
+  .bar-row.click:hover, .bar-row:focus-visible { background: var(--band); outline: none; }
+  .bar-label { font-size: 13px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-val { font-size: 13px; color: var(--text); font-variant-numeric: tabular-nums; text-align: right; }
+  .bar-track { grid-column: 1 / -1; height: 12px; margin-top: 3px; position: relative; }
+  .bar { position: absolute; top: 0; bottom: 0; left: 0; background: var(--series-1); border-radius: 0 4px 4px 0; min-width: 2px; }
+  .bar.dim { background: var(--dim); }
+  .div .bar-track::before { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--axis); }
+  .div .bar.neg { background: var(--div-neg); border-radius: 4px 0 0 4px; left: auto; }
+  .div .bar.pos { background: var(--div-pos); }
+  .div .bar.dim { background: var(--dim); }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--text-2); margin-top: 12px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+
+  /* Mapa em grade */
+  .tilemap { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; max-width: 420px; margin: 0 auto; }
+  .uf { aspect-ratio: 1.15; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; cursor: pointer; border: 2px solid transparent; }
+  .uf small { font-weight: 500; font-size: 10.5px; opacity: .9; }
+  .uf:hover, .uf:focus-visible { outline: 2px solid var(--text); outline-offset: 1px; }
+  .uf.sel { border-color: var(--text); }
+
+  /* Linha */
+  .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .chart .tick { fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+
+  /* Tabela */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 6px 8px; border-bottom: 1px solid var(--grid); text-align: left; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  th { color: var(--text-2); font-weight: 600; }
+  .tbl-wrap { max-height: 340px; overflow: auto; }
+
+  #tip { position: fixed; pointer-events: none; z-index: 50; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 12.5px; box-shadow: 0 6px 20px rgba(0, 0, 0, .18); opacity: 0; transition: opacity .1s; max-width: 280px; }
+  #tip b { display: block; font-size: 13px; margin-bottom: 2px; }
+  #tip span { color: var(--text-2); }
+
+  footer { color: var(--muted); font-size: 12.5px; padding: 8px 0 40px; }
+  footer p { margin-bottom: 6px; max-width: 900px; }
+  footer a { color: var(--link); }
+  footer { border-top: 1px solid var(--border); padding-top: 20px; }
+
+  @media (max-width: 900px) {
+    .kpis { grid-template-columns: 1fr 1fr; }
+    .grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 480px) {
+    .wrap { padding: 0 16px; }
+    .f { max-width: none; flex: 1 1 calc(50% - 10px); min-width: 0; }
+    .tile .val { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="top">
+      <a href="../../../index.html">← Portfólio de Matheus Oliveira</a>
+      <button class="theme-btn" id="theme" type="button" aria-label="Alternar tema claro/escuro">◐ Tema</button>
+    </div>
+    <span class="tag-proj">Projeto independente · dados abertos da Anatel</span>
+    <h1>Panorama de Reclamações em Telecom</h1>
+    <p class="sub" id="sub">Reclamações de consumidores registradas na Anatel · dados abertos</p>
+  </div>
+</header>
+
+<div class="filters" role="region" aria-label="Filtros">
+  <div class="wrap">
+    <div class="f"><label for="fAno">Ano</label><select id="fAno"></select></div>
+    <div class="f"><label for="fMk">Operadora</label><select id="fMk"></select></div>
+    <div class="f"><label for="fS">Serviço</label><select id="fS"></select></div>
+    <div class="f"><label for="fU">UF</label><select id="fU"></select></div>
+    <button class="clear" id="clear" type="button">Limpar filtros</button>
+  </div>
+</div>
+
+<main>
+  <div class="wrap">
+    <p class="headline" id="headline" aria-live="polite"></p>
+
+    <section class="kpis" aria-label="Indicadores">
+      <div class="tile"><div class="lbl">Reclamações</div><div class="val" id="kTot"></div><div class="note" id="kTotN"></div></div>
+      <div class="tile"><div class="lbl">Variação</div><div class="val" id="kVar"></div><div class="note" id="kVarN"></div></div>
+      <div class="tile"><div class="lbl">Taxa de reabertura</div><div class="val" id="kReab"></div><div class="note" id="kReabN"></div></div>
+      <div class="tile"><div class="lbl">Principal problema</div><div class="val small" id="kProb"></div><div class="note" id="kProbN"></div></div>
+    </section>
+
+    <section class="grid">
+      <article class="card full" data-card="linha">
+        <div class="card-head"><div><h2>Reclamações por mês</h2><p class="desc">Todos os anos com os demais filtros aplicados. O ano selecionado fica destacado.</p></div><button class="tbl-btn" type="button">Tabela</button></div>
+        <div class="body chart" id="cLinha"></div>
+      </article>
+
+      <article class="card" data-card="share">
+        <div class="card-head"><div><h2>Participação por operadora</h2><p class="desc">% das reclamações. Clique para filtrar.</p></div><button class="tbl-btn" type="button">Tabela</button></div>
+        <div class="body" id="cShare"></div>
+      </article>
+
+      <article class="card" data-card="reab">
+        <div class="card-head"><div><h2>Taxa de reabertura vs. mercado</h2><p class="desc">Diferença em pontos percentuais. Reabertura = problema não resolvido.</p></div><button class="tbl-btn" type="button">Tabela</button></div>
+        <div class="body" id="cReab"></div>
+      </article>
+
+      <article class="card" data-card="uf">
+        <div class="card-head"><div><h2>Reclamações por UF</h2><p class="desc">Clique em um estado para filtrar.</p></div><button class="tbl-btn" type="button">Tabela</button></div>
+        <div class="body" id="cUf"></div>
+      </article>
+
+      <article class="card" data-card="serv">
+        <div class="card-head"><div><h2>Reclamações por serviço</h2><p class="desc">Clique para filtrar.</p></div><button class="tbl-btn" type="button">Tabela</button></div>
+        <div class="body" id="cServ"></div>
+      </article>
+
+      <article class="card" data-card="prob">
+        <div class="card-head"><div><h2>Top 10 problemas</h2><p class="desc">Motivos mais reclamados no recorte.</p></div><button class="tbl-btn" type="button">Tabela</button></div>
+        <div class="body" id="cProb"></div>
+      </article>
+
+      <article class="card" data-card="canal">
+        <div class="card-head"><div><h2>Canal de entrada</h2><p class="desc">Por onde o consumidor registrou a reclamação.</p></div><button class="tbl-btn" type="button">Tabela</button></div>
+        <div class="body" id="cCanal"></div>
+      </article>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><b>Fonte:</b> <a href="https://www.gov.br/anatel/pt-br/dados/dados-abertos" target="_blank" rel="noopener">Anatel, Dados Abertos</a>, base <i>consumidor_reclamacoes</i> (arquivo <i>reclamacoes_contexto.csv</i>). Só entram registros do tipo "Reclamação", de janeiro de 2021 em diante.</p>
+    <p><b>Notas:</b> volumes absolutos, sem ajuste pelo tamanho da base de clientes de cada operadora. O último ano é parcial, e as variações comparam os mesmos meses do ano anterior. As 10 operadoras com mais reclamações aparecem separadas e as demais ficam em "Outras operadoras". Problemas fora do top 25 do período estão agrupados.</p>
+    <p>Projeto pessoal de estudo com dados públicos, por <a href="https://www.linkedin.com/in/matheus-oliveira-06b0b5162" target="_blank" rel="noopener">Matheus Oliveira</a>. Não é um produto oficial da Anatel nem representa a visão de nenhuma empresa. O visual segue o Padrão Digital de Governo (Design System gov.br), que é aberto.</p>
+  </div>
+</footer>
+
+<div id="tip" role="status" aria-live="polite"></div>
+
+<script src="dados.js"></script>
+<script>
+(() => {
+  const D = window.DADOS;
+  const fmt = new Intl.NumberFormat('pt-BR');
+  const fmtPct = v => (v * 100).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
+  const fmtPP = v => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v * 100).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' p.p.';
+  const fmtCompact = v => v >= 1e6 ? (v / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + ' mi'
+                     : v >= 1e3 ? (v / 1e3).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil' : fmt.format(v);
+  const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+  const NOME_SERV = { 'SMP_Pós': 'Móvel pós-pago', 'SMP_Pré': 'Móvel pré-pago', 'STFC': 'Telefonia fixa', 'SCM': 'Banda larga fixa', 'SeAC': 'TV por assinatura', 'Outros': 'Outros' };
+  const nomeMarca = m => m === 'NÃO LOCALIZEI A MINHA EMPRESA' ? 'Empresa não identificada' : m === 'OUTRAS' ? 'Outras operadoras' : m;
+  const nomeServ = s => NOME_SERV[s] || s;
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  const anoDoMes = D.meses.map(m => D.anos.indexOf(m.slice(0, 4)));
+  const mesNum = D.meses.map(m => +m.slice(5));
+  const ultimoMes = D.meses[D.meses.length - 1];
+
+  // ---------- Estado e filtros ----------
+  const st = { ano: '', mk: '', s: '', u: '' };
+  const ordUf = D.ufs.map((u, i) => [u, i]).sort((a, b) => a[0].localeCompare(b[0]));
+  const opts = {
+    fAno: [['', 'Todos (2021–' + ultimoMes.slice(0, 4) + ')'], ...D.anos.map((a, i) => [String(i), a + (a === ultimoMes.slice(0, 4) ? ' (até ' + MESES[+ultimoMes.slice(5) - 1] + ')' : '')])],
+    fMk: [['', 'Todas'], ...D.marcas.map((m, i) => [String(i), nomeMarca(m)])],
+    fS: [['', 'Todos'], ...D.servicos.map((s, i) => [String(i), nomeServ(s)])],
+    fU: [['', 'Brasil'], ...ordUf.map(([u, i]) => [String(i), u])]
+  };
+  const keyOf = { fAno: 'ano', fMk: 'mk', fS: 's', fU: 'u' };
+  for (const id in opts) {
+    const el = document.getElementById(id);
+    el.innerHTML = opts[id].map(([v, t]) => `<option value="${v}">${esc(t)}</option>`).join('');
+    el.addEventListener('change', () => { st[keyOf[id]] = el.value; render(); });
+  }
+  const setF = (k, v) => { st[k] = st[k] === String(v) ? '' : String(v); render(); };
+  document.getElementById('clear').addEventListener('click', () => { st.ano = st.mk = st.s = st.u = ''; render(); });
+
+  // passa(linha, dimensões a ignorar, linha do cubo A?)
+  function passa(r, ign, isA) {
+    const a = isA ? anoDoMes[r[0]] : r[0];
+    if (!ign.ano && st.ano !== '' && a !== +st.ano) return false;
+    if (!ign.mk && st.mk !== '' && r[1] !== +st.mk) return false;
+    if (!ign.s && st.s !== '' && r[2] !== +st.s) return false;
+    if (!ign.u && st.u !== '' && r[3] !== +st.u) return false;
+    return true;
+  }
+
+  // ---------- Tooltip ----------
+  const tip = document.getElementById('tip');
+  function showTip(html, x, y) {
+    tip.innerHTML = html; tip.style.opacity = 1;
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    let left = x + 14, top = y + 14;
+    if (left + w > innerWidth - 8) left = x - w - 14;
+    if (top + h > innerHeight - 8) top = y - h - 14;
+    tip.style.left = Math.max(8, left) + 'px'; tip.style.top = Math.max(8, top) + 'px';
+  }
+  const hideTip = () => { tip.style.opacity = 0; };
+
+  // ---------- Tabela / gráfico ----------
+  const tables = {};
+  const tableMode = {};
+  document.querySelectorAll('.card').forEach(card => {
+    const btn = card.querySelector('.tbl-btn');
+    btn.addEventListener('click', () => {
+      const k = card.dataset.card;
+      tableMode[k] = !tableMode[k];
+      btn.textContent = tableMode[k] ? 'Gráfico' : 'Tabela';
+      render();
+    });
+  });
+  function tableHtml(t) {
+    return `<div class="tbl-wrap"><table><thead><tr>${t.cols.map((c, i) => `<th class="${i ? 'n' : ''}">${esc(c)}</th>`).join('')}</tr></thead><tbody>` +
+      t.rows.map(r => `<tr>${r.map((v, i) => `<td class="${i ? 'n' : ''}">${esc(v)}</td>`).join('')}</tr>`).join('') + '</tbody></table></div>';
+  }
+  function out(key, el, html, table) {
+    tables[key] = table;
+    el.innerHTML = tableMode[key] ? tableHtml(table) : html;
+  }
+
+  // ---------- Barras horizontais ----------
+  // items: {label, value, text, key?, dim?, tip}
+  function bars(items, onClick) {
+    const max = Math.max(...items.map(d => d.value), 1);
+    return `<div class="bars">${items.map((d, i) => `
+      <div class="bar-row${onClick ? ' click' : ''}" data-i="${i}" ${onClick ? 'tabindex="0" role="button"' : ''} aria-label="${esc(d.label)}: ${esc(d.text)}">
+        <div class="bar-label">${esc(d.label)}</div><div class="bar-val">${esc(d.text)}</div>
+        <div class="bar-track"><div class="bar${d.dim ? ' dim' : ''}" style="width:${(d.value / max * 100).toFixed(2)}%"></div></div>
+      </div>`).join('')}</div>`;
+  }
+  function divBars(items, onClick) {
+    const max = Math.max(...items.map(d => Math.abs(d.value)), 0.0001);
+    return `<div class="bars div">${items.map((d, i) => {
+      const w = Math.abs(d.value) / max * 50;
+      const style = d.value < 0 ? `right:50%;width:${w.toFixed(2)}%` : `left:50%;width:${w.toFixed(2)}%`;
+      return `<div class="bar-row${onClick ? ' click' : ''}" data-i="${i}" ${onClick ? 'tabindex="0" role="button"' : ''} aria-label="${esc(d.label)}: ${esc(d.text)}">
+        <div class="bar-label">${esc(d.label)}</div><div class="bar-val">${esc(d.text)}</div>
+        <div class="bar-track"><div class="bar ${d.value < 0 ? 'neg' : 'pos'}${d.dim ? ' dim' : ''}" style="${style}"></div></div>
+      </div>`;
+    }).join('')}</div>`;
+  }
+  function wireBars(el, items, onClick) {
+    el.querySelectorAll('.bar-row').forEach(row => {
+      const d = items[+row.dataset.i];
+      row.addEventListener('mousemove', e => showTip(d.tip, e.clientX, e.clientY));
+      row.addEventListener('mouseleave', hideTip);
+      if (onClick) {
+        row.addEventListener('click', () => { hideTip(); onClick(d); });
+        row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(d); } });
+      }
+    });
+  }
+
+  // ---------- Linha (SVG) ----------
+  function niceMax(v) {
+    const p = Math.pow(10, Math.floor(Math.log10(v || 1)));
+    for (const m of [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) if (m * p >= v) return m * p;
+    return 10 * p;
+  }
+  function lineChart(el, serie) {
+    const W = Math.max(320, el.clientWidth), H = W < 600 ? 220 : 260;
+    const m = { l: 52, r: 14, t: 12, b: 26 };
+    const iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const n = serie.length, ymax = niceMax(Math.max(...serie, 1));
+    const x = i => m.l + (n === 1 ? iw / 2 : i / (n - 1) * iw);
+    const y = v => m.t + ih - v / ymax * ih;
+    let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Reclamações por mês, de ${D.meses[0]} a ${ultimoMes}">`;
+    // destaque do ano selecionado
+    if (st.ano !== '') {
+      const idx = D.meses.map((_, i) => i).filter(i => anoDoMes[i] === +st.ano);
+      const step = iw / (n - 1);
+      const x0 = Math.max(m.l, x(idx[0]) - step / 2), x1 = Math.min(m.l + iw, x(idx[idx.length - 1]) + step / 2);
+      s += `<rect x="${x0}" y="${m.t}" width="${x1 - x0}" height="${ih}" fill="var(--band)"/>`;
+    }
+    for (let k = 0; k <= 4; k++) {
+      const v = ymax * k / 4, yy = y(v);
+      s += `<line x1="${m.l}" x2="${m.l + iw}" y1="${yy}" y2="${yy}" stroke="${k ? 'var(--grid)' : 'var(--axis)'}" stroke-width="1"/>`;
+      s += `<text class="tick" x="${m.l - 8}" y="${yy + 4}" text-anchor="end">${fmtCompact(v)}</text>`;
+    }
+    D.meses.forEach((mm, i) => {
+      if (mm.endsWith('-01')) s += `<text class="tick" x="${x(i)}" y="${H - 6}" text-anchor="middle">${mm.slice(0, 4)}</text>`;
+    });
+    const d = serie.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('');
+    s += `<path d="${d}" fill="none" stroke="var(--series-1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    s += `<g id="hov" style="display:none"><line id="hovL" y1="${m.t}" y2="${m.t + ih}" stroke="var(--axis)" stroke-width="1"/><circle id="hovC" r="4.5" fill="var(--series-1)" stroke="var(--surface)" stroke-width="2"/></g>`;
+    s += `<rect id="hit" x="${m.l}" y="${m.t}" width="${iw}" height="${ih}" fill="transparent"/>`;
+    s += '</svg>';
+    el.innerHTML = s;
+    const svg = el.querySelector('svg'), hov = svg.querySelector('#hov');
+    svg.querySelector('#hit').addEventListener('mousemove', e => {
+      const r = svg.getBoundingClientRect(), px = (e.clientX - r.left) * W / r.width;
+      const i = Math.max(0, Math.min(n - 1, Math.round((px - m.l) / iw * (n - 1))));
+      hov.style.display = '';
+      svg.querySelector('#hovL').setAttribute('x1', x(i)); svg.querySelector('#hovL').setAttribute('x2', x(i));
+      svg.querySelector('#hovC').setAttribute('cx', x(i)); svg.querySelector('#hovC').setAttribute('cy', y(serie[i]));
+      const mm = D.meses[i], prevI = i - 12;
+      const yoy = prevI >= 0 && serie[prevI] ? (serie[i] - serie[prevI]) / serie[prevI] : null;
+      showTip(`<b>${MESES[+mm.slice(5) - 1]}/${mm.slice(0, 4)}</b>${fmt.format(serie[i])} reclamações` +
+        (yoy !== null ? `<br><span>${yoy < 0 ? '▼' : '▲'} ${fmtPct(Math.abs(yoy))} vs. mesmo mês do ano anterior</span>` : ''), e.clientX, e.clientY);
+    });
+    svg.querySelector('#hit').addEventListener('mouseleave', () => { hov.style.display = 'none'; hideTip(); });
+  }
+
+  // ---------- Mapa em grade ----------
+  const POS = { RR: [2, 0], AP: [3, 0], AM: [1, 1], PA: [2, 1], MA: [3, 1], CE: [4, 1], RN: [5, 1],
+    AC: [0, 2], RO: [1, 2], TO: [2, 2], PI: [3, 2], PE: [4, 2], PB: [5, 2],
+    MT: [1, 3], GO: [2, 3], BA: [3, 3], SE: [4, 3], AL: [5, 3],
+    MS: [1, 4], DF: [2, 4], MG: [3, 4], ES: [4, 4], PR: [1, 5], SP: [2, 5], RJ: [3, 5], SC: [1, 6], RS: [1, 7] };
+  // 5 faixas por quantil (SP sozinho achataria uma escala linear)
+  function quantis(vals, k) {
+    const s = vals.filter(v => v > 0).sort((a, b) => a - b);
+    const cortes = [];
+    for (let q = 1; q < k; q++) cortes.push(s[Math.floor(q / k * s.length)] || 0);
+    return cortes;
+  }
+  function seqClasses() {
+    const ramp = getComputedStyle(document.documentElement).getPropertyValue('--seq').split(',').map(s => s.trim());
+    return [0, 2, 3, 4, 6].map(i => ({ bg: ramp[i], fg: i >= 4 ? '#ffffff' : '#071d41' }));
+  }
+
+  // ---------- Render ----------
+  function render() {
+    for (const id in keyOf) document.getElementById(id).value = st[keyOf[id]];
+    const anoSel = st.ano !== '' ? D.anos[+st.ano] : null;
+
+    // Agregações do cubo A
+    let tot = 0, reab = 0, totM = 0, reabM = 0;
+    const serie = new Array(D.meses.length).fill(0);
+    const porMk = D.marcas.map(() => [0, 0]);
+    const porUf = new Array(D.ufs.length).fill(0);
+    const porS = new Array(D.servicos.length).fill(0);
+    for (const r of D.a) {
+      if (passa(r, {}, true)) { tot += r[4]; reab += r[5]; }
+      if (passa(r, { mk: 1 }, true)) { totM += r[4]; reabM += r[5]; porMk[r[1]][0] += r[4]; porMk[r[1]][1] += r[5]; }
+      if (passa(r, { ano: 1 }, true)) serie[r[0]] += r[4];
+      if (passa(r, { u: 1 }, true)) porUf[r[3]] += r[4];
+      if (passa(r, { s: 1 }, true)) porS[r[2]] += r[4];
+    }
+
+    // Variação: mesmo período do ano anterior
+    let cur = 0, prev = 0, varLbl = '';
+    if (anoSel) {
+      const y = +anoSel, mesesY = new Set(D.meses.map((mm, i) => +mm.slice(0, 4) === y ? mesNum[i] : null).filter(Boolean));
+      D.meses.forEach((mm, i) => {
+        if (!mesesY.has(mesNum[i])) return;
+        if (+mm.slice(0, 4) === y) cur += serie[i]; else if (+mm.slice(0, 4) === y - 1) prev += serie[i];
+      });
+      const maxM = Math.max(...mesesY);
+      varLbl = 'vs. ' + (y - 1) + (mesesY.size < 12 ? ` (jan–${MESES[maxM - 1]})` : '');
+    } else {
+      const L = serie.length;
+      for (let i = L - 12; i < L; i++) cur += serie[i];
+      for (let i = L - 24; i < L - 12; i++) prev += serie[i];
+      varLbl = 'últimos 12 meses vs. 12 anteriores';
+    }
+    const vari = prev ? (cur - prev) / prev : null;
+
+    // Problemas (cubo B) e canais (cubo C)
+    const porP = new Array(D.problemas.length).fill(0); let totB = 0;
+    for (const r of D.b) if (passa(r, {}, false)) { porP[r[4]] += r[5]; totB += r[5]; }
+    const porC = new Array(D.canais.length).fill(0);
+    for (const r of D.c) if (passa(r, {}, false)) porC[r[4]] += r[5];
+    const topP = porP.map((v, i) => [i, v]).filter(([i]) => i < D.problemas.length - 1).sort((a, b) => b[1] - a[1]);
+
+    // ----- Textos -----
+    const recorte = [st.mk !== '' ? nomeMarca(D.marcas[+st.mk]) : null, st.s !== '' ? nomeServ(D.servicos[+st.s]).toLowerCase() : null, st.u !== '' ? D.ufs[+st.u] : null].filter(Boolean);
+    const periodo = anoSel ? (anoSel === ultimoMes.slice(0, 4) ? `${anoSel} (até ${MESES[+ultimoMes.slice(5) - 1]})` : anoSel) : `jan/2021 a ${MESES[+ultimoMes.slice(5) - 1]}/${ultimoMes.slice(0, 4)}`;
+    document.getElementById('sub').textContent = `Reclamações de consumidores registradas na Anatel · ${periodo}` + (recorte.length ? ' · ' + recorte.join(' · ') : '');
+
+    let head = '';
+    if (tot === 0) head = 'Nenhuma reclamação no recorte selecionado.';
+    else {
+      const quem = recorte.length ? recorte.join(', ') : 'o setor de telecom';
+      head = `${anoSel ? 'Em ' + periodo : 'De ' + periodo}, ${esc(quem)} somou ${fmtCompact(tot)} reclamações`;
+      if (vari !== null) head += `, <span class="${vari < 0 ? 'neg' : 'pos'}">${vari < 0 ? 'queda' : 'alta'} de ${fmtPct(Math.abs(vari))}</span> ${anoSel ? 'sobre o mesmo período de ' + (+anoSel - 1) : 'nos últimos 12 meses'}`;
+      if (topP.length && topP[0][1] > 0) head += `. O principal motivo foi “${esc(D.problemas[topP[0][0]].toLowerCase())}”.`;
+      else head += '.';
+    }
+    document.getElementById('headline').innerHTML = head;
+
+    // ----- KPIs -----
+    document.getElementById('kTot').textContent = fmtCompact(tot);
+    document.getElementById('kTotN').textContent = fmt.format(tot) + ' no período';
+    const kVar = document.getElementById('kVar');
+    if (vari === null) { kVar.textContent = '—'; kVar.className = 'val'; }
+    else { kVar.textContent = (vari < 0 ? '▼ ' : '▲ ') + fmtPct(Math.abs(vari)); kVar.className = 'val ' + (vari < 0 ? 'delta-neg' : 'delta-pos'); }
+    document.getElementById('kVarN').textContent = vari === null ? 'sem ano anterior para comparar' : varLbl;
+    const tx = tot ? reab / tot : 0, txM = totM ? reabM / totM : 0;
+    document.getElementById('kReab').textContent = tot ? fmtPct(tx) : '—';
+    document.getElementById('kReabN').textContent = st.mk !== '' && tot ? `mercado: ${fmtPct(txM)} (${fmtPP(tx - txM)})` : 'reclamações reabertas pelo consumidor';
+    if (topP.length && topP[0][1] > 0) {
+      document.getElementById('kProb').textContent = D.problemas[topP[0][0]];
+      document.getElementById('kProbN').textContent = fmtPct(topP[0][1] / totB) + ' das reclamações do recorte';
+    } else { document.getElementById('kProb').textContent = '—'; document.getElementById('kProbN').textContent = ''; }
+
+    // ----- Linha -----
+    const elL = document.getElementById('cLinha');
+    tables.linha = { cols: ['Mês', 'Reclamações'], rows: D.meses.map((mm, i) => [MESES[+mm.slice(5) - 1] + '/' + mm.slice(0, 4), fmt.format(serie[i])]) };
+    if (tableMode.linha) elL.innerHTML = tableHtml(tables.linha); else lineChart(elL, serie);
+
+    // ----- Participação por operadora -----
+    const totMk = porMk.reduce((a, b) => a + b[0], 0);
+    const itShare = porMk.map((v, i) => ({ i, label: nomeMarca(D.marcas[i]), value: totMk ? v[0] / totMk : 0 }))
+      .filter(d => d.value > 0).sort((a, b) => b.value - a.value)
+      .map(d => ({ ...d, text: fmtPct(d.value), dim: st.mk !== '' && d.i !== +st.mk,
+        tip: `<b>${esc(d.label)}</b>${fmt.format(porMk[d.i][0])} reclamações<br><span>${fmtPct(d.value)} do total</span>` }));
+    const elS = document.getElementById('cShare');
+    out('share', elS, bars(itShare, true), { cols: ['Operadora', 'Reclamações', 'Participação'], rows: itShare.map(d => [d.label, fmt.format(porMk[d.i][0]), d.text]) });
+    if (!tableMode.share) wireBars(elS, itShare, d => setF('mk', d.i));
+
+    // ----- Reabertura vs mercado -----
+    const itReab = porMk.map((v, i) => ({ i, label: nomeMarca(D.marcas[i]), tot: v[0], tx: v[0] ? v[1] / v[0] : 0 }))
+      .filter(d => d.tot >= 500).map(d => ({ ...d, value: d.tx - txM }))
+      .sort((a, b) => b.value - a.value)
+      .map(d => ({ ...d, text: fmtPP(d.value), dim: st.mk !== '' && d.i !== +st.mk,
+        tip: `<b>${esc(d.label)}</b>Reabertura: ${fmtPct(d.tx)}<br><span>Mercado: ${fmtPct(txM)} · ${fmtPP(d.value)}</span>` }));
+    const elR = document.getElementById('cReab');
+    const legR = `<div class="legend"><span><i style="background:var(--div-pos)"></i>Acima do mercado (pior)</span><span><i style="background:var(--div-neg)"></i>Abaixo do mercado (melhor)</span><span>Mercado: ${fmtPct(txM)}</span></div>`;
+    out('reab', elR, (itReab.length ? divBars(itReab, true) : '<p class="desc">Sem dados suficientes.</p>') + legR,
+      { cols: ['Operadora', 'Taxa de reabertura', 'vs. mercado'], rows: itReab.map(d => [d.label, fmtPct(d.tx), d.text]) });
+    if (!tableMode.reab) wireBars(elR, itReab, d => setF('mk', d.i));
+
+    // ----- Mapa UF -----
+    const classes = seqClasses(), cortes = quantis(porUf, classes.length);
+    const classeDe = v => { let k = 0; while (k < cortes.length && v >= cortes[k]) k++; return k; };
+    let mapa = '<div class="tilemap" role="group" aria-label="Mapa de reclamações por UF">';
+    for (const [uf, [c, r]] of Object.entries(POS)) {
+      const i = D.ufs.indexOf(uf); const v = i >= 0 ? porUf[i] : 0;
+      const col = classes[classeDe(v)];
+      mapa += `<div class="uf${st.u !== '' && +st.u === i ? ' sel' : ''}" style="grid-column:${c + 1};grid-row:${r + 1};background:${col.bg};color:${col.fg}" data-i="${i}" tabindex="0" role="button" aria-label="${uf}: ${fmt.format(v)} reclamações">${uf}<small>${fmtCompact(v)}</small></div>`;
+    }
+    const faixas = classes.map((col, k) => {
+      const de = k === 0 ? 0 : cortes[k - 1], ate = cortes[k];
+      return `<span><i style="background:${col.bg}"></i>${k === classes.length - 1 ? fmtCompact(de) + '+' : fmtCompact(de) + '–' + fmtCompact(ate)}</span>`;
+    }).join('');
+    mapa += `</div><div class="legend" style="justify-content:center">${faixas}</div>`;
+    const elU = document.getElementById('cUf');
+    const totUf = porUf.reduce((a, b) => a + b, 0);
+    out('uf', elU, mapa, { cols: ['UF', 'Reclamações', '% do total'], rows: porUf.map((v, i) => [D.ufs[i], v, i]).sort((a, b) => b[1] - a[1]).map(([u, v]) => [u, fmt.format(v), fmtPct(totUf ? v / totUf : 0)]) });
+    if (!tableMode.uf) elU.querySelectorAll('.uf').forEach(t => {
+      const i = +t.dataset.i;
+      t.addEventListener('mousemove', e => showTip(`<b>${D.ufs[i]}</b>${fmt.format(porUf[i])} reclamações<br><span>${fmtPct(totUf ? porUf[i] / totUf : 0)} do total</span>`, e.clientX, e.clientY));
+      t.addEventListener('mouseleave', hideTip);
+      t.addEventListener('click', () => { hideTip(); setF('u', i); });
+      t.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setF('u', i); } });
+    });
+
+    // ----- Serviço -----
+    const totS = porS.reduce((a, b) => a + b, 0);
+    const itServ = porS.map((v, i) => ({ i, label: nomeServ(D.servicos[i]), value: v })).filter(d => d.value > 0).sort((a, b) => b.value - a.value)
+      .map(d => ({ ...d, text: fmtCompact(d.value), dim: st.s !== '' && d.i !== +st.s, tip: `<b>${esc(d.label)}</b>${fmt.format(d.value)} reclamações<br><span>${fmtPct(totS ? d.value / totS : 0)} do total</span>` }));
+    const elSv = document.getElementById('cServ');
+    out('serv', elSv, bars(itServ, true), { cols: ['Serviço', 'Reclamações', '% do total'], rows: itServ.map(d => [d.label, fmt.format(d.value), fmtPct(totS ? d.value / totS : 0)]) });
+    if (!tableMode.serv) wireBars(elSv, itServ, d => setF('s', d.i));
+
+    // ----- Problemas -----
+    const itProb = topP.slice(0, 10).filter(([, v]) => v > 0).map(([i, v]) => ({ i, label: D.problemas[i], value: v, text: fmtCompact(v),
+      tip: `<b>${esc(D.problemas[i])}</b>${fmt.format(v)} reclamações · ${fmtPct(totB ? v / totB : 0)}<br><span>Assunto: ${esc(D.assuntos[D.problemaAssunto[i]] || '—')}</span>` }));
+    const elP = document.getElementById('cProb');
+    out('prob', elP, itProb.length ? bars(itProb, false) : '<p class="desc">Sem dados.</p>', { cols: ['Problema', 'Reclamações', '% do total'], rows: itProb.map(d => [d.label, fmt.format(d.value), fmtPct(totB ? d.value / totB : 0)]) });
+    if (!tableMode.prob) wireBars(elP, itProb, null);
+
+    // ----- Canais -----
+    const totC = porC.reduce((a, b) => a + b, 0);
+    const itC = porC.map((v, i) => ({ i, label: D.canais[i], value: v })).filter(d => d.value > 0).sort((a, b) => b.value - a.value)
+      .map(d => ({ ...d, text: fmtPct(totC ? d.value / totC : 0), tip: `<b>${esc(d.label)}</b>${fmt.format(d.value)} reclamações` }));
+    const elC = document.getElementById('cCanal');
+    out('canal', elC, bars(itC, false), { cols: ['Canal', 'Reclamações', '% do total'], rows: itC.map(d => [d.label, fmt.format(d.value), d.text]) });
+    if (!tableMode.canal) wireBars(elC, itC, null);
+  }
+
+  // ---------- Tema ----------
+  const themeBtn = document.getElementById('theme');
+  try { const t = localStorage.getItem('tema'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  themeBtn.addEventListener('click', () => {
+    const atual = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const novo = atual === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = novo;
+    try { localStorage.setItem('tema', novo); } catch (e) {}
+    render();
+  });
+
+  let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(render, 150); });
+  render();
+})();
+</script>
+</body>
+</html>

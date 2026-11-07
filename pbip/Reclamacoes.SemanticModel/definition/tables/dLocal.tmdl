@@ -1,0 +1,58 @@
+table dLocal
+
+	column ChaveLocal
+		dataType: string
+		isHidden
+		isKey
+		summarizeBy: none
+		sourceColumn: [ChaveLocal]
+
+	column UF
+		dataType: string
+		dataCategory: StateOrProvince
+		summarizeBy: none
+		sourceColumn: [UF]
+
+	column Cidade
+		dataType: string
+		dataCategory: City
+		summarizeBy: none
+		sourceColumn: [Cidade]
+
+	column Regiao
+		dataType: string
+		summarizeBy: none
+		sourceColumn: [Regiao]
+
+	column LocalMapa
+		dataType: string
+		dataCategory: Place
+		summarizeBy: none
+		sourceColumn: [LocalMapa]
+
+	partition dLocal = calculated
+		mode: import
+		source =
+				VAR _Base =
+					SELECTCOLUMNS ( DISTINCT ( fReclamacoes[ChaveLocal] ), "ChaveLocal", fReclamacoes[ChaveLocal] )
+				VAR _Partes =
+					ADDCOLUMNS (
+						_Base,
+						"UF", LEFT ( [ChaveLocal], SEARCH ( "|", [ChaveLocal] ) - 1 ),
+						"Cidade", MID ( [ChaveLocal], SEARCH ( "|", [ChaveLocal] ) + 1, 200 )
+					)
+				RETURN
+					ADDCOLUMNS (
+						_Partes,
+						"Regiao",
+							SWITCH (
+								TRUE (),
+								[UF] IN { "AC", "AM", "AP", "PA", "RO", "RR", "TO" }, "Norte",
+								[UF] IN { "AL", "BA", "CE", "MA", "PB", "PE", "PI", "RN", "SE" }, "Nordeste",
+								[UF] IN { "DF", "GO", "MS", "MT" }, "Centro-Oeste",
+								[UF] IN { "ES", "MG", "RJ", "SP" }, "Sudeste",
+								[UF] IN { "PR", "RS", "SC" }, "Sul",
+								"Não informado"
+							),
+						"LocalMapa", [Cidade] & ", " & [UF] & ", Brasil"
+					)
