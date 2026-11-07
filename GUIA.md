@@ -87,6 +87,6 @@ Tamanho da página: 16:9, 1280 × 720.
 
 1. Tire prints de cada página e salve em `imagens/` (`01-visao-geral.png`, `02-operadoras.png`…).
 2. Preencha a seção **Principais insights** do README com 3 a 5 conclusões reais.
-3. Suba para o GitHub, no repositório `Power-BI-` ou em um novo como `powerbi-reclamacoes-anatel`:
+3. Suba para o GitHub, no repositório `painel-reclamacoes-anatel`:
    `README.md`, `GUIA.md`, `dax/`, `power-query/`, `imagens/` e o `.pbix`. O `.pbix` só deve subir se tiver menos de 100 MB; se passar, deixe só os prints.
 4. Opcional: **Publicar na Web** pelo Power BI Service, para ter um link interativo no portfólio. Use uma conta pessoal, não a da empresa.
